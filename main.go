@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html"
 	"log"
 	"net/http"
 
@@ -39,7 +40,7 @@ func main() {
 			check(err)
 			for line := range tail.Lines {
 				conn.WriteJSON(Log{
-					LogLine: line,
+					LogLine: html.EscapeString(line),
 				})
 			}
 			// }
