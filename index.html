@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tailsocket</title>
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+</head>
+<body class="container-fluid">
+  <h1>Tailsocket</h1>
+  <button class="btn btn-default" type="button" name="start" onclick="clearTail();start()">Start/Refresh</button>
+  <button class="btn btn-default" type="button" name="stop" onclick="ws.close();clearTail();">Stop Tailing</button>
+  <script>
+
+  var ws
+  var c = document.getElementById("comms")
+  var i = 1;
+
+  function start() {
+    ws = new WebSocket("ws://localhost:3000/v1/ws");
+    ws.addEventListener("message", function(e) {
+      c = document.getElementById("comms")
+      c.innerHTML += "<li><i><b>"+ i++ +": </i></b>" + JSON.parse(e.data).logline + "</li><br>";
+    });
+  }
+
+  function clearTail() {
+    c.innerHTML = ""
+  }
+
+  start();
+  </script>
+
+  <div id="comms"></div>
+
+</body>
+</html>
