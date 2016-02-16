@@ -27,7 +27,9 @@
     ws.addEventListener("message", function(e) {
       c = document.getElementById("comms")
       line = checkStringFor(JSON.parse(e.data).logline);
+      console.log(line.search(/HTTP\/1.0&#34;\s404/))
       c.innerHTML += "<li>" + line + "</li>";
+      updateScroll();
     });
   }
 
@@ -36,29 +38,34 @@
   }
 
   start();
+  function updateScroll(){
+    var element = document.getElementById("comms");
+    element.scrollTop = element.scrollHeight;
+  }
+  function checkStringFor(str) {
+    if (str.search("error") > -1) {
 
-function checkStringFor(str) {
-    switch (str) {
-      case str.indexOf("[error]") > -1:
-        str = "<span class='error'>" + str + "</span>"
-        break;
-      case str.indexOf("[warn]") > -1:
-        str = "<span class='warn'>" + str + "</span>"
-        break;
-      case str.indexOf("[notice]") > -1:
-        str = "<span class='notice'>" + str + "</span>"
-        break;
-      case str.indexOf('HTTP/1.0" 404') > -1:
-        str = "<span class='404'>" + str + "</span>"
-        break;
-      case str.indexOf('HTTP/1.0" 200') > -1:
-        str = "<span class='200'>" + str + "</span>"
-        break;
-      default:
+      str = "<span class='error'>" + str + "</span>";
+
+    } else if (str.search("warn") > -1) {
+
+      str = "<span class='warn'>" + str + "</span>";
+
+    } else if (str.search("notice") > -1) {
+
+      str = "<span class='notice'>" + str + "</span>";
+
+    } else if (str.search(/HTTP\/1.0&#34;\s404/) > -1) {
+
+      str = "<span class='fourofour'>" + str + "</span>";
+
+    } else if (str.search(/HTTP\/1.0&#34;\s200/) > -1) {
+
+      str = "<span class='twohundred'>" + str + "</span>";
 
     }
     return str;
-}
+  }
 
   </script>
 
@@ -76,6 +83,54 @@ function checkStringFor(str) {
     padding: 15px;
     word-wrap: break-word;
     word-break: break-all;
+  }
+
+  .fourofour:before {
+    content: " ";
+    height: 10px;
+    width: 10px;
+    display: inline-block;
+    background-color: red;
+    border-radius: 100%;
+    margin-right: 5px;
+  }
+  .twohundred:before {
+    content: " ";
+    height: 10px;
+    width: 10px;
+    display: inline-block;
+    background-color: #21ff00;
+    border-radius: 100%;
+    margin-right: 5px;
+  }
+  .error:before {
+    content: " ";
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 5px 8.7px 5px;
+    border-color: transparent transparent #ff0000 transparent;
+
+  }
+  .notice:before {
+    content: " ";
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 5px 8.7px 5px;
+    border-color: transparent transparent yellow transparent;
+  }
+  .warn:before {
+    content: " ";
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 5px 8.7px 5px;
+    border-color: transparent transparent yellow transparent;
+
   }
   </style>
 </body>

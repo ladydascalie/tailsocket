@@ -5,6 +5,8 @@ import (
 	"html"
 	"log"
 	"net/http"
+	"runtime"
+	"time"
 
 	"github.com/dleung/gotail"
 	"github.com/gorilla/websocket"
@@ -18,6 +20,7 @@ var upgrader = websocket.Upgrader{
 var fname string
 
 func main() {
+	runtime.GOMAXPROCS(1)
 
 	flag.StringVar(&fname, "file", "", "File to tail")
 	flag.Parse()
@@ -32,6 +35,7 @@ func main() {
 		// Listens to messages from the client and closes the connection when necessary
 		go func(conn *websocket.Conn) {
 			for {
+				time.Sleep(1 * time.Second)
 				_, _, err := conn.ReadMessage()
 				if err != nil {
 					conn.Close()
@@ -41,16 +45,14 @@ func main() {
 
 		// Sends data to the client
 		go func(conn *websocket.Conn) {
-			// ch := time.Tick(5 * time.Second)
-			// for range ch {
-			tail, err := gotail.NewTail(fname, gotail.Config{Timeout: 10})
+			tail, err := gotail.NewTail(fname, gotail.Config{Timeout: 2})
 			check(err)
 			for line := range tail.Lines {
 				conn.WriteJSON(Log{
 					LogLine: html.EscapeString(line),
 				})
+				time.Sleep(500 * time.Millisecond)
 			}
-			// }
 		}(conn)
 	})
 
