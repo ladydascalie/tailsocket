@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"html"
 	"log"
 	"net/http"
@@ -14,7 +15,13 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+var fname string
+
 func main() {
+
+	flag.StringVar(&fname, "file", "", "File to tail")
+	flag.Parse()
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "index.html")
 	})
@@ -36,7 +43,7 @@ func main() {
 		go func(conn *websocket.Conn) {
 			// ch := time.Tick(5 * time.Second)
 			// for range ch {
-			tail, err := gotail.NewTail("test.txt", gotail.Config{Timeout: 10})
+			tail, err := gotail.NewTail(fname, gotail.Config{Timeout: 10})
 			check(err)
 			for line := range tail.Lines {
 				conn.WriteJSON(Log{

@@ -9,10 +9,12 @@
 
   <!-- Optional theme -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+  <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:400,600' rel='stylesheet' type='text/css'>
 </head>
 <body class="container-fluid">
   <h1>Tailsocket</h1>
-  <button class="btn btn-default" type="button" name="start" onclick="clearTail();start()">Start/Refresh</button>
+  <button class="btn btn-default" type="button" name="start" onclick="start()">Start/Refresh</button>
   <button class="btn btn-default" type="button" name="stop" onclick="ws.close();clearTail();">Stop Tailing</button>
   <script>
 
@@ -24,7 +26,8 @@
     ws = new WebSocket("ws://localhost:3000/v1/ws");
     ws.addEventListener("message", function(e) {
       c = document.getElementById("comms")
-      c.innerHTML += "<li><i><b>"+ i++ +": </i></b>" + JSON.parse(e.data).logline + "</li><br>";
+      line = checkStringFor(JSON.parse(e.data).logline);
+      c.innerHTML += "<li>" + line + "</li>";
     });
   }
 
@@ -33,9 +36,47 @@
   }
 
   start();
+
+function checkStringFor(str) {
+    switch (str) {
+      case str.indexOf("[error]") > -1:
+        str = "<span class='error'>" + str + "</span>"
+        break;
+      case str.indexOf("[warn]") > -1:
+        str = "<span class='warn'>" + str + "</span>"
+        break;
+      case str.indexOf("[notice]") > -1:
+        str = "<span class='notice'>" + str + "</span>"
+        break;
+      case str.indexOf('HTTP/1.0" 404') > -1:
+        str = "<span class='404'>" + str + "</span>"
+        break;
+      case str.indexOf('HTTP/1.0" 200') > -1:
+        str = "<span class='200'>" + str + "</span>"
+        break;
+      default:
+
+    }
+    return str;
+}
+
   </script>
 
-  <div id="comms"></div>
+  <div class="terminal" id="comms"></div>
 
+  <style media="screen">
+  .terminal {
+    font-family: 'Source Code Pro', monospace;
+    height: 480px;
+    background-color: #002b36;
+    margin-top: 30px;
+    overflow: scroll;
+    color: #93a1a1;
+    list-style: none;
+    padding: 15px;
+    word-wrap: break-word;
+    word-break: break-all;
+  }
+  </style>
 </body>
 </html>
