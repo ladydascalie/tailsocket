@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"html"
 	"log"
 	"net/http"
@@ -20,21 +21,28 @@ var upgrader = websocket.Upgrader{
 var fname string
 
 func main() {
+	// Limit to 1 proc to avoid running intensively for no reason
 	runtime.GOMAXPROCS(1)
 
-	flag.StringVar(&fname, "file", "", "File to tail")
+	flag.StringVar(&fname, "file", "", "File to tail. Ex: ./tailsocket -file=\"/var/log/my_awesome_log\"")
 	flag.Parse()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "index.html")
+		index, err := Asset("index.html")
+		check(err)
+
+		// Prints the bundled index.html directly to the connection
+		fmt.Fprintf(w, "%s", index)
 	})
 
+	// The handler for the websocket
 	http.HandleFunc("/v1/ws", func(w http.ResponseWriter, r *http.Request) {
 		conn, _ := upgrader.Upgrade(w, r, nil)
 
 		// Listens to messages from the client and closes the connection when necessary
 		go func(conn *websocket.Conn) {
 			for {
+				// Prevent using the CPU massively just to listen to close request
 				time.Sleep(1 * time.Second)
 				_, _, err := conn.ReadMessage()
 				if err != nil {
@@ -43,7 +51,7 @@ func main() {
 			}
 		}(conn)
 
-		// Sends data to the client
+		// Sends data back to the client
 		go func(conn *websocket.Conn) {
 			tail, err := gotail.NewTail(fname, gotail.Config{Timeout: 2})
 			check(err)
@@ -51,6 +59,7 @@ func main() {
 				conn.WriteJSON(Log{
 					LogLine: html.EscapeString(line),
 				})
+				// Delay sending the message back, again to provide CPU relief
 				time.Sleep(500 * time.Millisecond)
 			}
 		}(conn)
